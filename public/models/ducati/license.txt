@@ -1,0 +1,11 @@
+Model Information:
+* title:	Ducati v4r
+* source:	https://sketchfab.com/3d-models/ducati-v4r-76701e23fbcb408dae5c892594199a52
+* author:	Jonrss (https://sketchfab.com/huy14320000006)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Ducati v4r" (https://sketchfab.com/3d-models/ducati-v4r-76701e23fbcb408dae5c892594199a52) by Jonrss (https://sketchfab.com/huy14320000006) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

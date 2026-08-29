@@ -1,0 +1,11 @@
+Model Information:
+* title:	Kawashaki ninja h2
+* source:	https://sketchfab.com/3d-models/kawashaki-ninja-h2-73eebe213a3043d1a1eb277c8ce05b5f
+* author:	Jonrss (https://sketchfab.com/huy14320000006)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Kawashaki ninja h2" (https://sketchfab.com/3d-models/kawashaki-ninja-h2-73eebe213a3043d1a1eb277c8ce05b5f) by Jonrss (https://sketchfab.com/huy14320000006) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
