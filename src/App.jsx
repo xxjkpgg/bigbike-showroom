@@ -71,7 +71,7 @@ const BIKES = [
 {
   id: "kawasaki-ninja-h2",
   themeColor: "#78BE21",
-  logo: `${BASE}logos/kawasaki-ninja-h2.svg`,
+  logo: `${BASE}logos/kawasaki-1.svg`,
 
   model: `${BASE}models/kawasaki/scene.gltf`,
   modelScale: 1.0,
