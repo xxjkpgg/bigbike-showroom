@@ -6,9 +6,9 @@
  *
  * Tailwind CSS must be configured in the host project.
  */
-import React, { useState, useMemo, useCallback, useRef, Suspense } from "react";
+import React, { useState, useMemo, useCallback, useRef, useEffect, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gauge, Zap, Timer, Tag, Globe, ChevronRight, RotateCw } from "lucide-react";
+import { Gauge, Zap, Timer, Tag, Globe, ChevronRight, RotateCw, Volume2, Pause } from "lucide-react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Environment, ContactShadows, Html, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
@@ -74,6 +74,7 @@ const BIKES = [
   logo: `${BASE}logos/kawasaki-1.svg`,
 
   model: `${BASE}models/kawasaki/scene.gltf`,
+  audio: `${BASE}audio/kawasaki-ninja-h2.mp3`,
   modelScale: 1.0,
   modelPosition: [0.5, -0.1, 0],
   modelRotation: [0, -Math.PI / 2, 0],
@@ -126,6 +127,8 @@ const STRINGS = {
     cta: "Configure & Enquire",
     modelsLabel: "Models",
     dragHint: "Drag to rotate · Scroll to zoom",
+    playSound: "Play engine sound",
+    stopSound: "Stop sound",
   },
   th: {
     brandLine: "โชว์รูมบิ๊กไบค์",
@@ -134,6 +137,8 @@ const STRINGS = {
     cta: "ปรับแต่งและสอบถาม",
     modelsLabel: "รุ่นรถ",
     dragHint: "ลากเพื่อหมุน · เลื่อนเพื่อซูม",
+    playSound: "ฟังเสียงเครื่องยนต์",
+    stopSound: "หยุดเสียง",
   },
 };
 
@@ -613,8 +618,54 @@ function SpecItem({ icon: Icon, label, value, accent, unitless }) {
 
 function BikeViewer({ bike, lang, t }) {
   const accent = bike.themeColor;
+  const audioRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+    setIsPlaying(false);
+  }, [bike.id]);
+
+  const toggleEngineSound = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying) {
+      audio.pause();
+      audio.currentTime = 0;
+      setIsPlaying(false);
+      return;
+    }
+
+    try {
+      await audio.play();
+      setIsPlaying(true);
+    } catch {
+      setIsPlaying(false);
+    }
+  }, [isPlaying]);
+
   return (
     <div className="relative flex-1 overflow-hidden order-1 md:order-2">
+      {bike.audio && (
+        <audio
+          ref={audioRef}
+          src={bike.audio}
+          preload="metadata"
+          onEnded={() => setIsPlaying(false)}
+          onTimeUpdate={(event) => {
+            if (event.currentTarget.currentTime >= 30) {
+              event.currentTarget.pause();
+              event.currentTarget.currentTime = 0;
+              setIsPlaying(false);
+            }
+          }}
+        />
+      )}
       {/* ambient color wash, tied to theme color, sits above the canvas but below text */}
       <div
         className="pointer-events-none absolute inset-0 z-[5] transition-all duration-700"
@@ -660,8 +711,22 @@ function BikeViewer({ bike, lang, t }) {
         </div>
 
         {/* drag hint, floats mid-right, ignored by pointer events */}
-        <div className="hidden sm:flex justify-end px-10">
-          <span className="text-[10px] tracking-wide text-white/30 uppercase">{t.dragHint}</span>
+        <div className="flex items-center justify-end gap-4 px-5 sm:px-10">
+          <span className="hidden sm:inline text-[10px] tracking-wide text-white/30 uppercase">{t.dragHint}</span>
+          {bike.audio && (
+            <motion.button
+              type="button"
+              onClick={toggleEngineSound}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              className="pointer-events-auto flex items-center gap-2 rounded-full border border-white/15 bg-black/45 px-4 py-2 text-xs font-semibold text-white backdrop-blur-md transition-colors hover:border-white/35"
+              style={{ boxShadow: isPlaying ? `0 0 24px ${hexToRgba(accent, 0.5)}` : "none" }}
+              aria-label={isPlaying ? t.stopSound : t.playSound}
+            >
+              {isPlaying ? <Pause size={15} /> : <Volume2 size={15} style={{ color: accent }} />}
+              {isPlaying ? t.stopSound : t.playSound}
+            </motion.button>
+          )}
         </div>
 
         <div className="px-5 sm:px-10 pb-6 sm:pb-10">
