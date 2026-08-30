@@ -321,7 +321,7 @@ function BikeModel3D({ color }) {
 function RealBikeModel({ bike }) {
   const { scene } = useGLTF(bike.model);
 
-  const clonedScene = useMemo(() => {
+  const { clonedScene, modelSize } = useMemo(() => {
     const clone = scene.clone(true);
 
     clone.traverse((obj) => {
@@ -383,14 +383,23 @@ function RealBikeModel({ bike }) {
     clone.position.y -= center.y;
     clone.position.z -= center.z;
 
-    return clone;
+    return { clonedScene: clone, modelSize: box.getSize(new THREE.Vector3()) };
   }, [scene, bike.id]);
+
+  // โมเดลแต่ละไฟล์ใช้หน่วยไม่เหมือนกัน จึงปรับความยาวให้เท่ากันก่อนวางบนแท่น
+  const targetModelLength = 3.45;
+  const sourceModelLength = Math.max(modelSize.x, modelSize.z);
+  const normalizedScale = targetModelLength / sourceModelLength;
+
+  // วางจุดต่ำสุดของโมเดลไว้เหนือผิวแท่น โดยใช้สเกลที่ปรับแล้ว
+  const stageY = -0.585;
+  const modelY = stageY + (modelSize.y * normalizedScale) / 2;
 
   return (
     <group
-      position={bike.modelPosition}
+      position={[bike.modelPosition[0], modelY, bike.modelPosition[2]]}
       rotation={bike.modelRotation}
-      scale={bike.modelScale}
+      scale={normalizedScale}
     >
       <primitive object={clonedScene} />
     </group>
@@ -400,11 +409,36 @@ function RealBikeModel({ bike }) {
 function SceneLights({ accent }) {
   return (
     <>
-      <ambientLight intensity={0.45} />
-      <directionalLight position={[4, 6, 3]} intensity={1.1} castShadow shadow-mapSize={[1024, 1024]} />
-      <pointLight position={[-4, 2, -3]} intensity={12} color={accent} />
-      <spotLight position={[0, 4, 4]} angle={0.5} penumbra={0.6} intensity={0.6} color="#ffffff" />
+      <ambientLight intensity={0.34} />
+      <hemisphereLight args={["#dce8ff", "#08090d", 0.55]} />
+      <directionalLight position={[4, 6, 3]} intensity={1.15} castShadow shadow-mapSize={[1024, 1024]} />
+      <spotLight position={[1, 5, 3.5]} target-position={[0.5, -0.1, 0]} angle={0.42} penumbra={0.75} intensity={3.2} color="#ffffff" castShadow />
+      <spotLight position={[-2.5, 2.5, -3]} target-position={[0.5, 0, 0]} angle={0.55} penumbra={0.9} intensity={18} color={accent} />
+      <pointLight position={[2.5, 0.2, -2]} intensity={7} distance={6} color={accent} />
     </>
+  );
+}
+
+function ShowroomStage({ accent }) {
+  return (
+    <group position={[0.5, 0, 0]}>
+      <mesh position={[0, -0.77, 0]} receiveShadow>
+        <cylinderGeometry args={[2.35, 2.55, 0.28, 96]} />
+        <meshStandardMaterial color="#111318" roughness={0.3} metalness={0.72} />
+      </mesh>
+      <mesh position={[0, -0.622, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[1.92, 2.28, 96]} />
+        <meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={2.2} toneMapped={false} />
+      </mesh>
+      <mesh position={[0, -0.616, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <circleGeometry args={[1.91, 96]} />
+        <meshPhysicalMaterial color="#171a20" roughness={0.2} metalness={0.7} clearcoat={0.75} clearcoatRoughness={0.25} />
+      </mesh>
+      <mesh position={[0, -0.82, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[2.43, 2.51, 96]} />
+        <meshBasicMaterial color={accent} transparent opacity={0.7} toneMapped={false} />
+      </mesh>
+    </group>
   );
 }
 
@@ -431,12 +465,13 @@ function BikeCanvas({ bike }) {
     >
       <Suspense fallback={<CanvasLoader />}>
         <SceneLights accent={accent} />
+        <ShowroomStage accent={accent} />
         {bike.model ? (
   <RealBikeModel key={bike.id} bike={bike} />
 ) : (
   <BikeModel3D key={bike.id} color={accent} />
 )}
-        <ContactShadows position={[0, -0.62, 0]} opacity={0.55} scale={7} blur={2.4} far={2} />
+        <ContactShadows position={[0.5, -0.61, 0]} opacity={0.72} scale={5} blur={2.2} far={2} />
         <Environment preset="city" />
       </Suspense>
       <OrbitControls
