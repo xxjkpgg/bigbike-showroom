@@ -8,7 +8,7 @@
  */
 import React, { useState, useMemo, useCallback, useRef, useEffect, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gauge, Zap, Timer, Tag, Globe, ChevronRight, RotateCw, Volume2, Pause } from "lucide-react";
+import { Gauge, Zap, Timer, Tag, Globe, ChevronRight, RotateCw } from "lucide-react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Environment, ContactShadows, Html, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
@@ -18,11 +18,13 @@ import * as THREE from "three";
 /* ------------------------------------------------------------------ */
 
 const BASE = import.meta.env.BASE_URL;
+const SHOWROOM_BIKE_LENGTH = 3.05;
 const BIKES = [
 {
   id: "ducati-panigale-v4",
   themeColor: "#C8102E",
   logo: `${BASE}logos/ducati.svg`,
+  homeImage: `${BASE}images/home-superbike-render.png`,
   
   name: { en: "Panigale V4s", th: "Panigale V4" },
   brand: "Ducati",
@@ -48,6 +50,7 @@ const BIKES = [
   id: "bmw-s1000rr",
   themeColor: "#003D7D",
   logo: `${BASE}logos/bmw.svg`,
+  homeImage: `${BASE}images/home-bmw-render-v2.png`,
 
   model: `${BASE}models/bmw/bmw_s1000rr_fixed.glb`,
   modelScale: 1,
@@ -72,6 +75,7 @@ const BIKES = [
   id: "kawasaki-ninja-h2",
   themeColor: "#78BE21",
   logo: `${BASE}logos/kawasaki-1.svg`,
+  homeImage: `${BASE}images/home-kawasaki-render.png`,
 
   model: `${BASE}models/kawasaki/scene.gltf`,
   audio: `${BASE}audio/kawasaki-ninja-h2.mp3`,
@@ -97,6 +101,7 @@ const BIKES = [
   id: "honda-cbr1000rrr",
   themeColor: "#E4002B",
   logo: `${BASE}logos/honda-racing.png`,
+  homeImage: `${BASE}images/home-honda-render-v2.png`,
 
   model: `${BASE}models/honda/scene.gltf`,
   modelScale: 1,
@@ -127,8 +132,9 @@ const STRINGS = {
     cta: "Configure & Enquire",
     modelsLabel: "Models",
     dragHint: "Drag to rotate · Scroll to zoom",
-    playSound: "Play engine sound",
-    stopSound: "Stop sound",
+    engineHint: "Click the start switch on the bike to hear the engine",
+    playSound: "Start engine",
+    stopSound: "Stop engine",
   },
   th: {
     brandLine: "โชว์รูมบิ๊กไบค์",
@@ -137,8 +143,34 @@ const STRINGS = {
     cta: "ปรับแต่งและสอบถาม",
     modelsLabel: "รุ่นรถ",
     dragHint: "ลากเพื่อหมุน · เลื่อนเพื่อซูม",
-    playSound: "ฟังเสียงเครื่องยนต์",
-    stopSound: "หยุดเสียง",
+    engineHint: "กดสวิตช์สตาร์ตบนตัวรถเพื่อฟังเสียงเครื่องยนต์",
+    playSound: "สตาร์ตเครื่อง",
+    stopSound: "ดับเครื่อง",
+  },
+};
+
+const HOME_COPY = {
+  en: {
+    eyebrow: "DIGITAL MOTORCYCLE EXPERIENCE",
+    titleTop: "Explore performance.",
+    titleAccent: "Beyond the showroom.",
+    description:
+      "BigBike Showroom is an interactive 3D experience built for riders to discover iconic superbikes, inspect every angle, compare essential specifications, and feel each machine before the first ride.",
+    enter: "Enter showroom",
+    hint: "No download required · Best experienced with sound",
+    features: ["Interactive 3D", "Detailed specifications", "Thai & English"],
+    collection: "Featured collection",
+  },
+  th: {
+    eyebrow: "ประสบการณ์มอเตอร์ไซค์ดิจิทัล",
+    titleTop: "สัมผัสสมรรถนะ",
+    titleAccent: "เหนือกว่าการชมในโชว์รูม",
+    description:
+      "BigBike Showroom คือประสบการณ์โชว์รูมสามมิติที่ให้ผู้ขับขี่สำรวจซูเปอร์ไบค์ระดับไอคอน หมุนดูได้ทุกมุม เปรียบเทียบข้อมูลสำคัญ และสัมผัสเอกลักษณ์ของรถแต่ละคันก่อนออกเดินทางจริง",
+    enter: "เข้าสู่โชว์รูม",
+    hint: "ไม่ต้องดาวน์โหลด · แนะนำให้เปิดเสียง",
+    features: ["โมเดลสามมิติ", "ข้อมูลรถครบถ้วน", "ไทยและอังกฤษ"],
+    collection: "รถเด่นในโชว์รูม",
   },
 };
 
@@ -392,7 +424,7 @@ function RealBikeModel({ bike }) {
   }, [scene, bike.id]);
 
   // โมเดลแต่ละไฟล์ใช้หน่วยไม่เหมือนกัน จึงปรับความยาวให้เท่ากันก่อนวางบนแท่น
-  const targetModelLength = 3.45;
+  const targetModelLength = SHOWROOM_BIKE_LENGTH;
   const sourceModelLength = Math.max(modelSize.x, modelSize.z);
   const normalizedScale = targetModelLength / sourceModelLength;
 
@@ -428,20 +460,20 @@ function ShowroomStage({ accent }) {
   return (
     <group position={[0.5, 0, 0]}>
       <mesh position={[0, -0.77, 0]} receiveShadow>
-        <cylinderGeometry args={[2.35, 2.55, 0.28, 96]} />
+        <cylinderGeometry args={[2.08, 2.25, 0.28, 96]} />
         <meshStandardMaterial color="#111318" roughness={0.3} metalness={0.72} />
       </mesh>
       <mesh position={[0, -0.622, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[1.92, 2.28, 96]} />
-        <meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={2.2} toneMapped={false} />
+        <ringGeometry args={[1.7, 2.02, 96]} />
+        <meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={1.45} toneMapped={false} />
       </mesh>
       <mesh position={[0, -0.616, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <circleGeometry args={[1.91, 96]} />
+        <circleGeometry args={[1.69, 96]} />
         <meshPhysicalMaterial color="#171a20" roughness={0.2} metalness={0.7} clearcoat={0.75} clearcoatRoughness={0.25} />
       </mesh>
       <mesh position={[0, -0.82, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[2.43, 2.51, 96]} />
-        <meshBasicMaterial color={accent} transparent opacity={0.7} toneMapped={false} />
+        <ringGeometry args={[2.15, 2.22, 96]} />
+        <meshBasicMaterial color={accent} transparent opacity={0.42} toneMapped={false} />
       </mesh>
     </group>
   );
@@ -450,7 +482,7 @@ function ShowroomStage({ accent }) {
 function CanvasLoader() {
   return (
     <Html center>
-      <div className="flex items-center gap-2 text-white/50 text-xs tracking-wide whitespace-nowrap">
+      <div className="flex items-center gap-2 text-black/50 text-xs tracking-wide whitespace-nowrap">
         <RotateCw size={14} className="animate-spin" />
         Loading model…
       </div>
@@ -458,7 +490,36 @@ function CanvasLoader() {
   );
 }
 
-function BikeCanvas({ bike }) {
+function KawasakiIgnition({ accent, isPlaying, onToggle }) {
+  return (
+    <group position={[0.5, 0.7, -0.64]}>
+      <mesh
+        onClick={(event) => {
+          event.stopPropagation();
+          onToggle();
+        }}
+        onPointerOver={() => {
+          document.body.style.cursor = "pointer";
+        }}
+        onPointerOut={() => {
+          document.body.style.cursor = "auto";
+        }}
+      >
+        <sphereGeometry args={[0.055, 24, 24]} />
+        <meshStandardMaterial
+          color={isPlaying ? accent : "#171a18"}
+          emissive={accent}
+          emissiveIntensity={isPlaying ? 1.8 : 0.28}
+          roughness={0.38}
+          metalness={0.62}
+        />
+      </mesh>
+      <pointLight color={accent} intensity={isPlaying ? 1.1 : 0} distance={0.45} />
+    </group>
+  );
+}
+
+function BikeCanvas({ bike, isPlaying, onToggleEngine }) {
   const accent = bike.themeColor;
   return (
     <Canvas
@@ -476,7 +537,14 @@ function BikeCanvas({ bike }) {
 ) : (
   <BikeModel3D key={bike.id} color={accent} />
 )}
-        <ContactShadows position={[0.5, -0.61, 0]} opacity={0.72} scale={5} blur={2.2} far={2} />
+        {bike.audio && (
+          <KawasakiIgnition
+            accent={accent}
+            isPlaying={isPlaying}
+            onToggle={onToggleEngine}
+          />
+        )}
+        <ContactShadows position={[0.5, -0.61, 0]} opacity={0.72} scale={4.45} blur={2.2} far={2} />
         <Environment preset="city" />
       </Suspense>
       <OrbitControls
@@ -500,22 +568,34 @@ function BikeCanvas({ bike }) {
 /*  HEADER                                                              */
 /* ------------------------------------------------------------------ */
 
-function Header({ lang, setLang, accent, t }) {
+function Header({ lang, setLang, accent, t, onHome }) {
   return (
-    <header className="flex items-center justify-between px-5 sm:px-8 py-5 border-b border-white/10 shrink-0 relative z-20">
-      <div className="flex items-center gap-2.5">
+    <header className="grid grid-cols-2 md:grid-cols-3 items-center px-5 sm:px-8 py-4 border-b border-black/[0.08] bg-[#f4f4f1]/85 backdrop-blur-xl shrink-0 relative z-20">
+      <button type="button" onClick={onHome} className="flex items-center gap-2.5 text-left">
         <span
           className="w-2.5 h-2.5 rounded-full transition-colors duration-700"
           style={{ backgroundColor: accent, boxShadow: `0 0 14px ${accent}` }}
         />
-        <span className="text-[11px] sm:text-xs tracking-[0.28em] font-semibold text-white/70">
+        <span
+          className={`text-black/70 ${
+            lang === "th"
+              ? "text-[13px] font-medium tracking-[0.015em]"
+              : "text-[11px] sm:text-xs tracking-[0.28em] font-semibold"
+          }`}
+        >
           {t.brandLine}
+        </span>
+      </button>
+
+      <div className="hidden md:flex items-center justify-center gap-2">
+        <span className="rounded-full border border-black/10 bg-black/[0.035] px-4 py-2 text-[9px] font-semibold uppercase tracking-[0.2em] text-black/55">
+          Models · 01—04
         </span>
       </div>
 
       <button
         onClick={() => setLang(lang === "en" ? "th" : "en")}
-        className="flex items-center gap-2 rounded-full border border-white/15 px-3.5 py-2 text-xs font-medium text-white/80 hover:text-white hover:border-white/40 transition-colors active:scale-95"
+        className="justify-self-end flex items-center gap-2 rounded-full border border-black/15 bg-white/55 px-3.5 py-2 text-xs font-medium text-black/70 hover:text-black hover:border-black/35 transition-colors active:scale-95"
         style={{ transition: "all 0.3s" }}
       >
         <Globe size={14} strokeWidth={2} />
@@ -536,8 +616,8 @@ function ThumbRail({ bikes, activeId, onSelect, lang, t }) {
         flex md:flex-col gap-3 md:gap-4
         overflow-x-auto md:overflow-x-visible
         px-4 md:px-3 py-3 md:py-6
-        md:w-24 lg:w-28 shrink-0
-        border-t md:border-t-0 md:border-r border-white/10
+        md:w-20 lg:w-24 shrink-0
+        border-t md:border-t-0 md:border-r border-black/10 bg-[#f4f4f1]/90
         order-3 md:order-1 relative z-20
       "
       aria-label={t.modelsLabel}
@@ -551,9 +631,9 @@ function ThumbRail({ bikes, activeId, onSelect, lang, t }) {
             className="relative shrink-0 md:shrink flex flex-col items-center gap-2 group focus:outline-none"
           >
             <motion.div
-              className="relative w-16 h-16 md:w-full md:h-16 lg:h-20 rounded-xl overflow-hidden bg-white/[0.04] border"
+              className="relative w-16 h-16 md:w-full md:h-14 lg:h-16 rounded-xl overflow-hidden bg-black/[0.035] border"
               animate={{
-                borderColor: active ? bike.themeColor : "rgba(255,255,255,0.12)",
+                borderColor: active ? bike.themeColor : "rgba(0,0,0,0.12)",
                 scale: active ? 1 : 0.92,
               }}
               whileHover={{ scale: active ? 1 : 0.98 }}
@@ -581,7 +661,7 @@ function ThumbRail({ bikes, activeId, onSelect, lang, t }) {
             </motion.div>
             <span
               className={`text-[9px] md:text-[10px] tracking-wide leading-tight text-center max-w-[64px] md:max-w-none transition-colors duration-300 ${
-                active ? "text-white" : "text-white/40 group-hover:text-white/70"
+                active ? "text-black" : "text-black/40 group-hover:text-black/70"
               }`}
             >
               {bike.name[lang]}
@@ -600,13 +680,13 @@ function ThumbRail({ bikes, activeId, onSelect, lang, t }) {
 function SpecItem({ icon: Icon, label, value, accent, unitless }) {
   return (
     <div className="flex flex-col gap-1.5 min-w-[92px]">
-      <div className="flex items-center gap-1.5 text-white/40">
+      <div className="flex items-center gap-1.5 text-black/45">
         <Icon size={13} strokeWidth={2} style={{ color: accent }} />
         <span className="text-[10px] uppercase tracking-[0.14em]">{label}</span>
       </div>
-      <span className="text-xl sm:text-2xl font-semibold text-white tabular-nums leading-none">
+      <span className="text-xl sm:text-2xl font-semibold text-[#111214] tabular-nums leading-none">
         {value}
-        {!unitless && <span className="text-xs text-white/40 ml-1 font-normal" />}
+        {!unitless && <span className="text-xs text-black/40 ml-1 font-normal" />}
       </span>
     </div>
   );
@@ -650,7 +730,7 @@ function BikeViewer({ bike, lang, t }) {
   }, [isPlaying]);
 
   return (
-    <div className="relative flex-1 overflow-hidden order-1 md:order-2">
+    <div className="relative flex-1 overflow-hidden bg-[#f4f4f1] order-1 md:order-2">
       {bike.audio && (
         <audio
           ref={audioRef}
@@ -666,11 +746,21 @@ function BikeViewer({ bike, lang, t }) {
           }}
         />
       )}
+      <div
+        className="pointer-events-none absolute inset-0 z-0 opacity-25"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(0,0,0,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.045) 1px, transparent 1px)",
+          backgroundSize: "72px 72px",
+          maskImage: "linear-gradient(to bottom, black 0%, transparent 78%)",
+        }}
+      />
+      <div className="pointer-events-none absolute left-[57%] top-0 z-0 h-[72%] w-px bg-gradient-to-b from-transparent via-black/10 to-transparent" />
       {/* ambient color wash, tied to theme color, sits above the canvas but below text */}
       <div
         className="pointer-events-none absolute inset-0 z-[5] transition-all duration-700"
         style={{
-          background: `radial-gradient(60% 55% at 60% 40%, ${hexToRgba(accent, 0.18)} 0%, rgba(0,0,0,0) 70%)`,
+          background: `radial-gradient(60% 55% at 60% 40%, ${hexToRgba(accent, 0.11)} 0%, rgba(255,255,255,0) 70%)`,
         }}
       />
       <div
@@ -680,14 +770,18 @@ function BikeViewer({ bike, lang, t }) {
 
       {/* 3D canvas — fills the whole viewer, receives drag/scroll for OrbitControls */}
       <div className="absolute inset-0 z-0">
-        <BikeCanvas bike={bike} />
+        <BikeCanvas
+          bike={bike}
+          isPlaying={isPlaying}
+          onToggleEngine={toggleEngineSound}
+        />
       </div>
 
       {/* text + specs overlay — pointer-events-none so drags pass through to the canvas,
           re-enabled only on the CTA button */}
       <div className="relative z-10 h-full flex flex-col justify-between pointer-events-none">
         <div className="px-5 sm:px-10 pt-6 sm:pt-8">
-          <div className="flex items-center gap-2 text-[10px] sm:text-[11px] tracking-[0.24em] text-white/40 uppercase">
+          <div className="flex items-center gap-2 text-[10px] sm:text-[11px] tracking-[0.24em] text-black/45 uppercase">
             <span className="w-6 h-px transition-colors duration-500" style={{ backgroundColor: accent }} />
             {t.heroKicker}
           </div>
@@ -699,8 +793,8 @@ function BikeViewer({ bike, lang, t }) {
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.35, ease: "easeOut" }}
             >
-              <p className="mt-2 text-xs sm:text-sm font-medium text-white/50">{bike.brand}</p>
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.02]">
+              <p className="mt-3 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-black/50">{bike.brand}</p>
+              <h1 className="mt-1 text-3xl sm:text-5xl lg:text-6xl font-semibold tracking-[-0.04em] text-[#111214] leading-[1.02]">
                 {bike.name[lang]}
               </h1>
               <p className="mt-2 text-xs sm:text-sm font-semibold tracking-wide" style={{ color: accent }}>
@@ -712,24 +806,13 @@ function BikeViewer({ bike, lang, t }) {
 
         {/* drag hint, floats mid-right, ignored by pointer events */}
         <div className="flex items-center justify-end gap-4 px-5 sm:px-10">
-          <span className="hidden sm:inline text-[10px] tracking-wide text-white/30 uppercase">{t.dragHint}</span>
-          {bike.audio && (
-            <motion.button
-              type="button"
-              onClick={toggleEngineSound}
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              className="pointer-events-auto flex items-center gap-2 rounded-full border border-white/15 bg-black/45 px-4 py-2 text-xs font-semibold text-white backdrop-blur-md transition-colors hover:border-white/35"
-              style={{ boxShadow: isPlaying ? `0 0 24px ${hexToRgba(accent, 0.5)}` : "none" }}
-              aria-label={isPlaying ? t.stopSound : t.playSound}
-            >
-              {isPlaying ? <Pause size={15} /> : <Volume2 size={15} style={{ color: accent }} />}
-              {isPlaying ? t.stopSound : t.playSound}
-            </motion.button>
-          )}
+          <div className="hidden sm:flex flex-col items-end gap-1 text-[10px] tracking-wide uppercase">
+            <span className="text-black/35">{t.dragHint}</span>
+            <span style={{ color: hexToRgba(accent, 0.72) }}>{t.engineHint}</span>
+          </div>
         </div>
 
-        <div className="px-5 sm:px-10 pb-6 sm:pb-10">
+        <div className="mx-5 sm:mx-10 mb-5 sm:mb-8 rounded-2xl border border-black/10 bg-white/65 p-4 sm:p-5 shadow-2xl backdrop-blur-xl">
           <AnimatePresence mode="wait">
             <motion.p
               key={bike.id + "-desc"}
@@ -737,14 +820,14 @@ function BikeViewer({ bike, lang, t }) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.35 }}
-              className="text-sm sm:text-base text-white/60 max-w-xl leading-relaxed mb-6"
+              className="text-xs sm:text-sm text-black/60 max-w-xl leading-relaxed mb-4"
             >
               {bike.desc[lang]}
             </motion.p>
           </AnimatePresence>
 
-          <div className="flex flex-wrap items-end justify-between gap-6">
-            <div className="flex flex-wrap gap-x-8 gap-y-4">
+          <div className="flex flex-wrap items-end justify-between gap-5 border-t border-black/[0.08] pt-4">
+            <div className="flex flex-wrap gap-x-7 gap-y-4">
               <SpecItem icon={Gauge} label={t.specs.engine} value={bike.specs.engine} accent={accent} unitless />
               <SpecItem icon={Zap} label={t.specs.power} value={bike.specs.power} accent={accent} />
               <SpecItem icon={Timer} label={t.specs.topSpeed} value={bike.specs.topSpeed} accent={accent} />
@@ -754,8 +837,8 @@ function BikeViewer({ bike, lang, t }) {
             <motion.button
               whileHover={{ x: 4 }}
               whileTap={{ scale: 0.97 }}
-              className="pointer-events-auto flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-black shrink-0 transition-colors duration-500"
-              style={{ backgroundColor: accent }}
+              className="pointer-events-auto flex items-center gap-2 rounded-full border px-5 py-3 text-xs font-bold uppercase tracking-[0.08em] text-black shrink-0 transition-all duration-500"
+              style={{ backgroundColor: accent, borderColor: hexToRgba(accent, 0.75), boxShadow: `0 8px 30px ${hexToRgba(accent, 0.18)}` }}
             >
               {t.cta}
               <ChevronRight size={16} strokeWidth={2.5} />
@@ -771,9 +854,157 @@ function BikeViewer({ bike, lang, t }) {
 /*  APP                                                                 */
 /* ------------------------------------------------------------------ */
 
+function HomePage({ lang, setLang, onEnter }) {
+  const copy = HOME_COPY[lang];
+  const [selectedBikeId, setSelectedBikeId] = useState(BIKES[0].id);
+  const selectedBike = BIKES.find((bike) => bike.id === selectedBikeId) ?? BIKES[0];
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setSelectedBikeId((currentId) => {
+        const currentIndex = BIKES.findIndex((bike) => bike.id === currentId);
+        return BIKES[(currentIndex + 1) % BIKES.length].id;
+      });
+    }, 4200);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  return (
+    <motion.div
+      className="relative min-h-screen overflow-hidden bg-[#f4f4f1] text-[#111214]"
+      style={{ fontFamily: lang === "th" ? '"IBM Plex Sans Thai", "Leelawadee UI", sans-serif' : undefined }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+      exit={{ opacity: 0, scale: 0.985, filter: "blur(7px)" }}
+      transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 opacity-50"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(0,0,0,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.035) 1px, transparent 1px)",
+          backgroundSize: "72px 72px",
+        }}
+      />
+      <div className="pointer-events-none absolute -right-32 top-14 h-[620px] w-[620px] rounded-full bg-red-500/10 blur-[110px]" />
+
+      <header className="relative z-20 flex items-center justify-between border-b border-black/[0.08] px-5 py-4 sm:px-8">
+        <div className="flex items-center gap-2.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#C8102E] shadow-[0_0_16px_rgba(200,16,46,0.6)]" />
+          <span className="text-[11px] font-bold tracking-[0.28em]">BIGBIKE SHOWROOM</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setLang(lang === "en" ? "th" : "en")}
+          className="flex items-center gap-2 rounded-full border border-black/15 bg-white/55 px-3.5 py-2 text-xs font-semibold text-black/70 backdrop-blur-md transition hover:border-black/35 hover:text-black"
+        >
+          <Globe size={14} />
+          {lang === "en" ? "TH" : "EN"}
+        </button>
+      </header>
+
+      <main className="relative z-10 mx-auto grid min-h-[calc(100vh-69px)] max-w-[1500px] grid-cols-1 items-center gap-8 px-5 py-10 sm:px-10 lg:grid-cols-[0.9fr_1.1fr] lg:px-16">
+        <motion.section
+          initial={{ opacity: 0, y: 22 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="max-w-2xl"
+        >
+          <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.24em] text-black/40">
+            <span className="h-px w-8 bg-[#C8102E]" />
+            {copy.eyebrow}
+          </div>
+          <h1
+            className={`mt-6 text-5xl sm:text-6xl xl:text-7xl ${
+              lang === "th"
+                ? "font-medium leading-[1.14] tracking-[-0.025em]"
+                : "font-semibold leading-[0.98] tracking-[-0.055em]"
+            }`}
+          >
+            {copy.titleTop}
+            <span className="mt-2 block text-[#C8102E]">{copy.titleAccent}</span>
+          </h1>
+          <p className={`mt-7 max-w-xl text-sm text-black/58 sm:text-base ${lang === "th" ? "font-light leading-8" : "leading-7"}`}>
+            {copy.description}
+          </p>
+
+          <div className="mt-8 flex flex-wrap gap-2">
+            {copy.features.map((feature) => (
+              <span key={feature} className="rounded-full border border-black/10 bg-white/55 px-3 py-2 text-[9px] font-bold uppercase tracking-[0.14em] text-black/55 backdrop-blur">
+                {feature}
+              </span>
+            ))}
+          </div>
+
+          <div className="mt-9 flex flex-wrap items-center gap-5">
+            <motion.button
+              type="button"
+              onClick={onEnter}
+              whileHover={{ x: 4 }}
+              whileTap={{ scale: 0.97 }}
+              className="flex items-center gap-3 rounded-full bg-[#111214] px-6 py-3.5 text-xs font-bold uppercase tracking-[0.1em] text-white shadow-xl"
+            >
+              {copy.enter}
+              <ChevronRight size={17} />
+            </motion.button>
+            <span className="text-[9px] uppercase tracking-[0.13em] text-black/35">{copy.hint}</span>
+          </div>
+        </motion.section>
+
+        <motion.section
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.12, ease: "easeOut" }}
+          className="relative min-h-[380px] lg:min-h-[600px]"
+        >
+          <div className="absolute inset-0 overflow-hidden rounded-[2rem] border border-black/[0.08] bg-[#111214] shadow-2xl">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_65%_35%,rgba(200,16,46,0.32),transparent_48%)]" />
+            <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)] [background-size:58px_58px]" />
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={selectedBike.id}
+                src={selectedBike.homeImage}
+                alt={`${selectedBike.brand} superbike studio render`}
+                initial={{ opacity: 0, scale: 1.035 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.985 }}
+                transition={{ duration: 0.38, ease: "easeOut" }}
+                className="absolute inset-0 h-full w-full object-cover object-center"
+              />
+            </AnimatePresence>
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/10" />
+            <div className="absolute inset-x-6 bottom-6 rounded-2xl border border-white/10 bg-black/35 p-4 backdrop-blur-xl">
+              <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/35">{copy.collection}</p>
+              <div className="mt-3 flex items-center justify-between gap-3">
+                {BIKES.map((bike) => (
+                  <button
+                    type="button"
+                    key={bike.id}
+                    onClick={() => setSelectedBikeId(bike.id)}
+                    className="flex h-12 flex-1 items-center justify-center rounded-xl border bg-white/[0.04] p-2.5 transition-all duration-300 hover:bg-white/[0.08]"
+                    style={{
+                      borderColor: selectedBike.id === bike.id ? bike.themeColor : "rgba(255,255,255,0.1)",
+                      boxShadow: selectedBike.id === bike.id ? `inset 0 0 18px ${hexToRgba(bike.themeColor, 0.24)}` : "none",
+                    }}
+                    aria-label={`Show ${bike.brand}`}
+                  >
+                    <img src={bike.logo} alt={bike.brand} className="h-full w-full object-contain opacity-75" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.section>
+      </main>
+    </motion.div>
+  );
+}
+
 export default function BigBikeShowroom() {
   const [lang, setLang] = useState("en");
   const [activeId, setActiveId] = useState(BIKES[0].id);
+  const [screen, setScreen] = useState("home");
 
   const activeBike = useMemo(() => BIKES.find((b) => b.id === activeId) ?? BIKES[0], [activeId]);
   const t = STRINGS[lang];
@@ -781,13 +1012,27 @@ export default function BigBikeShowroom() {
   const handleSelect = useCallback((id) => setActiveId(id), []);
 
   return (
-    <div className="w-full h-screen min-h-[640px] bg-black text-white flex flex-col font-sans overflow-hidden">
-      <Header lang={lang} setLang={setLang} accent={activeBike.themeColor} t={t} />
+    <AnimatePresence mode="wait">
+      {screen === "home" ? (
+        <HomePage key="home" lang={lang} setLang={setLang} onEnter={() => setScreen("showroom")} />
+      ) : (
+        <motion.div
+          key="showroom"
+          className="w-full h-screen min-h-[640px] bg-[#f4f4f1] text-[#111214] flex flex-col font-sans overflow-hidden"
+          style={{ fontFamily: lang === "th" ? '"IBM Plex Sans Thai", "Leelawadee UI", sans-serif' : undefined }}
+          initial={{ opacity: 0, scale: 1.012, filter: "blur(8px)" }}
+          animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+          exit={{ opacity: 0, scale: 1.008, filter: "blur(6px)" }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <Header lang={lang} setLang={setLang} accent={activeBike.themeColor} t={t} onHome={() => setScreen("home")} />
 
-      <div className="flex-1 flex flex-col md:flex-row min-h-0">
-        <ThumbRail bikes={BIKES} activeId={activeId} onSelect={handleSelect} lang={lang} t={t} />
-        <BikeViewer bike={activeBike} lang={lang} t={t} />
-      </div>
-    </div>
+          <div className="flex-1 flex flex-col md:flex-row min-h-0">
+            <ThumbRail bikes={BIKES} activeId={activeId} onSelect={handleSelect} lang={lang} t={t} />
+            <BikeViewer bike={activeBike} lang={lang} t={t} />
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
