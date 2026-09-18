@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gauge, Zap, Timer, Tag, Globe, ChevronRight, GitCompareArrows, Heart } from "lucide-react";
+import { Gauge, Zap, Timer, Tag, Globe, ChevronRight, GitCompareArrows, Heart, Fuel, Ruler, Scale, RotateCw } from "lucide-react";
 import { BikeCanvas } from "./BikeScene";
 import { hexToRgba } from "../utils/color";
 export function Header({ lang, setLang, accent, t, onHome, onCompare, onGarage, garageCount }) {
@@ -113,12 +113,12 @@ export function ThumbRail({ bikes, activeId, onSelect, lang, t }) {
 
 function SpecItem({ icon: Icon, label, value, accent, unitless }) {
   return (
-    <div className="flex flex-col gap-1.5 min-w-[92px]">
+    <div className="showroom-spec-item flex flex-col gap-1.5 min-w-[92px]">
       <div className="flex items-center gap-1.5 text-black/45">
         <Icon size={13} strokeWidth={2} style={{ color: accent }} />
         <span className="text-[10px] uppercase tracking-[0.14em]">{label}</span>
       </div>
-      <span className="text-xl sm:text-2xl font-semibold text-[#111214] tabular-nums leading-none">
+      <span className="showroom-spec-value text-xl sm:text-2xl font-semibold text-[#111214] tabular-nums leading-none">
         {value}
         {!unitless && <span className="text-xs text-black/40 ml-1 font-normal" />}
       </span>
@@ -132,8 +132,10 @@ function SpecItem({ icon: Icon, label, value, accent, unitless }) {
 
 export function BikeViewer({ bike, lang, t }) {
   const accent = bike.themeColor;
+  const darkBooth = bike.id !== "bmw-s1000rr";
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -142,6 +144,7 @@ export function BikeViewer({ bike, lang, t }) {
       audio.currentTime = 0;
     }
     setIsPlaying(false);
+    setDetailsOpen(false);
   }, [bike.id]);
 
   const toggleEngineSound = useCallback(async () => {
@@ -227,7 +230,7 @@ export function BikeViewer({ bike, lang, t }) {
       <div className="relative z-10 h-full flex flex-col justify-between pointer-events-none">
         <div className="px-5 sm:px-10 pt-6 sm:pt-8">
           <div>
-          <div className="flex items-center gap-2 text-[9px] sm:text-[10px] tracking-[0.24em] text-black/40 uppercase">
+          <div className={`flex items-center gap-2 text-[9px] sm:text-[10px] tracking-[0.24em] uppercase ${darkBooth ? "text-white/55" : "text-black/40"}`} style={{ textShadow: darkBooth ? "0 1px 14px rgba(0,0,0,.5)" : "none" }}>
             <span className="w-6 h-px transition-colors duration-500" style={{ backgroundColor: accent }} />
             {t.heroKicker}
           </div>
@@ -239,8 +242,8 @@ export function BikeViewer({ bike, lang, t }) {
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.35, ease: "easeOut" }}
             >
-              <p className="mt-2 text-[9px] sm:text-[10px] font-semibold uppercase tracking-[0.2em] text-black/45">{bike.brand}</p>
-              <h1 className="mt-1 text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-[-0.045em] text-[#111214] leading-[1.02]">
+              <p className={`mt-2 text-[9px] sm:text-[10px] font-semibold uppercase tracking-[0.2em] ${darkBooth ? "text-white/60" : "text-black/45"}`}>{bike.brand}</p>
+              <h1 className={`mt-1 text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-[-0.045em] leading-[1.02] ${darkBooth ? "text-white" : "text-[#111214]"}`} style={{ textShadow: darkBooth ? "0 3px 24px rgba(0,0,0,.45)" : "none" }}>
                 {bike.name[lang]}
               </h1>
               <p className="mt-2 text-xs sm:text-sm font-semibold tracking-wide" style={{ color: accent }}>
@@ -259,7 +262,7 @@ export function BikeViewer({ bike, lang, t }) {
           </div>
         </div>
 
-        <div className="mx-5 sm:mx-10 mb-5 sm:mb-8 rounded-2xl border border-black/[0.08] bg-white/[0.82] p-4 sm:p-5 shadow-[0_24px_70px_rgba(0,0,0,0.13)] backdrop-blur-2xl">
+        <div className="showroom-info-panel mx-5 sm:mx-10 mb-5 sm:mb-8 rounded-2xl border border-black/[0.08] bg-white/[0.82] p-4 sm:p-5 shadow-[0_24px_70px_rgba(0,0,0,0.13)] backdrop-blur-2xl">
           <AnimatePresence mode="wait">
             <motion.p
               key={bike.id + "-desc"}
@@ -267,14 +270,20 @@ export function BikeViewer({ bike, lang, t }) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.35 }}
-              className="text-xs sm:text-sm text-black/60 max-w-xl leading-relaxed mb-4"
+              className="showroom-bike-description text-xs sm:text-sm text-black/60 max-w-xl leading-relaxed mb-4"
             >
               {bike.desc[lang]}
             </motion.p>
           </AnimatePresence>
 
-          <div className="flex flex-wrap items-end justify-between gap-5 border-t border-black/[0.08] pt-4">
-            <div className="flex flex-wrap gap-x-7 gap-y-4">
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] font-medium uppercase tracking-[0.12em] text-black/35">
+            <span>{t.modelYear} {bike.modelYear}</span>
+            <span className="h-1 w-1 rounded-full" style={{ backgroundColor: accent }} />
+            <span>{bike.market[lang]}</span>
+          </div>
+
+          <div className="showroom-specs-row flex flex-wrap items-end justify-between gap-5 border-t border-black/[0.08] pt-4">
+            <div className="showroom-primary-specs flex flex-wrap gap-x-7 gap-y-4">
               <SpecItem icon={Gauge} label={t.specs.engine} value={bike.specs.engine} accent={accent} unitless />
               <SpecItem icon={Zap} label={t.specs.power} value={bike.specs.power} accent={accent} />
               <SpecItem icon={Timer} label={t.specs.topSpeed} value={bike.specs.topSpeed} accent={accent} />
@@ -284,12 +293,45 @@ export function BikeViewer({ bike, lang, t }) {
             <motion.button
               whileHover={{ x: 4 }}
               whileTap={{ scale: 0.97 }}
-              className="pointer-events-auto flex items-center gap-2 rounded-full border px-5 py-3 text-xs font-bold uppercase tracking-[0.08em] text-black shrink-0 transition-all duration-500"
+              className="showroom-cta pointer-events-auto flex items-center gap-2 rounded-full border px-5 py-3 text-xs font-bold uppercase tracking-[0.08em] text-black shrink-0 transition-all duration-500"
               style={{ backgroundColor: accent, borderColor: hexToRgba(accent, 0.75), boxShadow: `0 8px 30px ${hexToRgba(accent, 0.18)}` }}
             >
               {t.cta}
               <ChevronRight size={16} strokeWidth={2.5} />
             </motion.button>
+          </div>
+          <button
+            type="button"
+            onClick={() => setDetailsOpen((current) => !current)}
+            className="showroom-details-toggle pointer-events-auto mt-3 w-full items-center justify-center rounded-full border border-black/10 bg-black/[0.035] px-4 py-2 text-[10px] font-semibold text-black/55"
+            aria-expanded={detailsOpen}
+          >
+            {detailsOpen ? t.lessDetails : t.moreDetails}
+          </button>
+          <div className={`showroom-extra-details ${detailsOpen ? "is-open" : ""}`}>
+          <div className="mt-4 grid grid-cols-2 gap-2 border-t border-black/[0.08] pt-4 sm:grid-cols-4">
+            {[
+              [RotateCw, t.specs.torque, bike.specs.torque],
+              [Scale, t.specs.weight, bike.specs.weight],
+              [Ruler, t.specs.seatHeight, bike.specs.seatHeight],
+              [Fuel, t.specs.fuelCapacity, bike.specs.fuelCapacity],
+            ].map(([Icon, label, value]) => (
+              <div key={label} className="rounded-xl bg-black/[0.025] px-3 py-2.5">
+                <span className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.1em] text-black/35"><Icon size={12} style={{ color: accent }} />{label}</span>
+                <strong className="mt-1 block text-sm font-semibold text-black/75">{value}</strong>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap gap-1.5">
+              {bike.highlights[lang].map((item) => <span key={item} className="rounded-full border border-black/[0.07] bg-white/45 px-2.5 py-1 text-[9px] text-black/45">{item}</span>)}
+            </div>
+            <div className="flex gap-3">
+              <a href={bike.sourceUrl} target="_blank" rel="noreferrer" className="pointer-events-auto text-[9px] font-semibold text-black/35 underline decoration-black/15 underline-offset-4 transition hover:text-black/65">{t.source}</a>
+              {bike.priceSourceUrl && <a href={bike.priceSourceUrl} target="_blank" rel="noreferrer" className="pointer-events-auto text-[9px] font-semibold text-black/35 underline decoration-black/15 underline-offset-4 transition hover:text-black/65">{t.priceSource}</a>}
+            </div>
+          </div>
+          <p className="mt-2 text-[8px] text-black/30">{bike.weightNote[lang]}</p>
           </div>
         </div>
       </div>

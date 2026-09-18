@@ -56,6 +56,67 @@
   background: linear-gradient(90deg, rgba(244, 244, 241, 0.92) 0%, rgba(244, 244, 241, 0.22) 52%, rgba(244, 244, 241, 0.62) 100%);
 }
 
+.showroom-details-toggle {
+  display: none;
+}
+
+@media (max-width: 767px), (max-height: 780px) {
+  .showroom-details-toggle {
+    display: flex;
+  }
+
+  .showroom-extra-details:not(.is-open) {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .showroom-info-panel {
+    margin: 0 12px 10px;
+    padding: 12px;
+  }
+
+  .showroom-bike-description {
+    display: -webkit-box;
+    margin-bottom: 8px;
+    overflow: hidden;
+    font-size: 10px;
+    line-height: 1rem;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .showroom-specs-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    padding-top: 8px;
+  }
+
+  .showroom-primary-specs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .showroom-spec-item {
+    min-width: 0;
+    gap: 3px;
+  }
+
+  .showroom-spec-value {
+    font-size: 1rem;
+    overflow-wrap: anywhere;
+  }
+
+  .showroom-cta {
+    width: 100%;
+    justify-content: center;
+    padding-block: 8px;
+    font-size: 10px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .showroom-shader__orb {
     animation: none;

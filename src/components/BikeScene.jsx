@@ -4,6 +4,7 @@ import { OrbitControls, Environment, Html, useGLTF } from "@react-three/drei";
 import { RotateCw } from "lucide-react";
 import * as THREE from "three";
 import { SHOWROOM_BIKE_LENGTH } from "../data/showroom";
+import { ExhibitionBooth } from "./ExhibitionBooth";
 function Wheel({ position, color }) {
   const rotorRef = useRef(null);
   useFrame((_, delta) => {
@@ -291,43 +292,58 @@ function KawasakiIgnition({ accent, isPlaying, onToggle }) {
   );
 }
 
+function AutoRotatingDisplay({ children }) {
+  const displayRef = useRef(null);
+
+  useFrame((_, delta) => {
+    if (displayRef.current) displayRef.current.rotation.y -= delta * 0.12;
+  });
+
+  return <group ref={displayRef} position={[0.5, 0, 0]}>{children}</group>;
+}
+
 export function BikeCanvas({ bike, isPlaying, onToggleEngine }) {
   const accent = bike.themeColor;
   return (
     <Canvas
       shadows
       dpr={[1, 1.8]}
-      camera={{ position: [4.5, 1.2, 0], fov: 34 }}
+      camera={{ position: [5.35, 1.65, 3.7], fov: 36 }}
       className="!absolute !inset-0"
       gl={{ antialias: true, alpha: true }}
     >
       <Suspense fallback={<CanvasLoader />}>
         <SceneLights accent={accent} />
-        <ShowroomStage accent={accent} />
-        {bike.model ? (
-  <RealBikeModel key={bike.id} bike={bike} />
-) : (
-  <BikeModel3D key={bike.id} color={accent} />
-)}
-        {bike.audio && (
-          <KawasakiIgnition
-            accent={accent}
-            isPlaying={isPlaying}
-            onToggle={onToggleEngine}
-          />
-        )}
+        <ExhibitionBooth bike={bike} />
+        <AutoRotatingDisplay>
+          <group position={[-0.5, 0, 0]}>
+            <ShowroomStage accent={accent} />
+            {bike.model ? (
+              <RealBikeModel key={bike.id} bike={bike} />
+            ) : (
+              <BikeModel3D key={bike.id} color={accent} />
+            )}
+            {bike.audio && (
+              <KawasakiIgnition
+                accent={accent}
+                isPlaying={isPlaying}
+                onToggle={onToggleEngine}
+              />
+            )}
+          </group>
+        </AutoRotatingDisplay>
         <Environment preset="city" />
       </Suspense>
       <OrbitControls
         makeDefault
-        target={[0.5, -0.1, 0]}
+        target={[0.25, -0.05, 0]}
         enablePan={false}
         minDistance={2.4}
-        maxDistance={6}
+        maxDistance={7.2}
+        minAzimuthAngle={0.18}
+        maxAzimuthAngle={1.62}
         minPolarAngle={Math.PI / 5}
         maxPolarAngle={Math.PI / 2.05}
-        autoRotate
-        autoRotateSpeed={-0.8}
         enableDamping
         dampingFactor={0.08}
       />

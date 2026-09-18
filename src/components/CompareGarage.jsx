@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Check, Gauge, Heart, Tag, Timer, Zap } from "lucide-react";
+import { ArrowLeft, Check, Fuel, Gauge, Heart, Ruler, Scale, Tag, Timer, Zap, RotateCw } from "lucide-react";
 import { BIKES } from "../data/showroom";
 
 const PAGE_COPY = {
@@ -17,7 +17,9 @@ const PAGE_COPY = {
     remove: "นำออก",
     saved: "บันทึกแล้ว",
     back: "กลับสู่โชว์รูม",
-    labels: { engine: "เครื่องยนต์", power: "แรงม้า", topSpeed: "ความเร็วสูงสุด", price: "ราคา" },
+    labels: { engine: "เครื่องยนต์", power: "แรงม้า", torque: "แรงบิด", topSpeed: "ความเร็วสูงสุด", weight: "น้ำหนัก", seatHeight: "ความสูงเบาะ", fuelCapacity: "ถังน้ำมัน", price: "ราคา" },
+    reference: "ข้อมูลอ้างอิง",
+    priceReference: "ที่มาราคา",
   },
   en: {
     compare: "Compare machines",
@@ -32,14 +34,20 @@ const PAGE_COPY = {
     remove: "Remove",
     saved: "Saved",
     back: "Back to showroom",
-    labels: { engine: "Engine", power: "Power", topSpeed: "Top speed", price: "Price" },
+    labels: { engine: "Engine", power: "Power", torque: "Torque", topSpeed: "Top speed", weight: "Weight", seatHeight: "Seat height", fuelCapacity: "Fuel tank", price: "Price" },
+    reference: "Specification source",
+    priceReference: "Price source",
   },
 };
 
 const specs = [
   ["engine", Gauge],
   ["power", Zap],
+  ["torque", RotateCw],
   ["topSpeed", Timer],
+  ["weight", Scale],
+  ["seatHeight", Ruler],
+  ["fuelCapacity", Fuel],
   ["price", Tag],
 ];
 
@@ -77,13 +85,17 @@ function BikeSelect({ value, onChange, label }) {
   );
 }
 
-function CompareCard({ bike, lang, labels, winnerBySpec }) {
+function CompareCard({ bike, lang, labels, winnerBySpec, referenceLabel, priceReferenceLabel }) {
   return (
     <article className="overflow-hidden rounded-[2rem] border border-black/[0.08] bg-white shadow-[0_24px_70px_rgba(0,0,0,0.08)]">
       <div className="relative h-48 overflow-hidden bg-[#111214] sm:h-64">
         <img src={bike.homeImage} alt={bike.name[lang]} className="h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-        <div className="absolute bottom-5 left-5 text-white"><p className="text-[9px] uppercase tracking-[0.2em] text-white/55">{bike.brand}</p><h2 className="mt-1 text-2xl font-semibold">{bike.name[lang]}</h2></div>
+        <div className="absolute bottom-5 left-5 text-white"><p className="text-[9px] uppercase tracking-[0.2em] text-white/55">{bike.brand} · MY{bike.modelYear}</p><h2 className="mt-1 text-2xl font-semibold">{bike.name[lang]}</h2><p className="mt-1 text-[9px] text-white/45">{bike.market[lang]}</p></div>
+      </div>
+      <div className="border-t border-black/[0.07] px-5 py-5 sm:px-7">
+        <div className="flex flex-wrap gap-1.5">{bike.highlights[lang].map((item) => <span key={item} className="rounded-full bg-black/[0.035] px-2.5 py-1 text-[9px] text-black/45">{item}</span>)}</div>
+        <div className="mt-3 flex items-center justify-between gap-3 text-[8px] text-black/30"><span>{bike.weightNote[lang]}</span><span className="flex gap-3"><a href={bike.sourceUrl} target="_blank" rel="noreferrer" className="font-semibold underline underline-offset-4">{referenceLabel}</a>{bike.priceSourceUrl && <a href={bike.priceSourceUrl} target="_blank" rel="noreferrer" className="font-semibold underline underline-offset-4">{priceReferenceLabel}</a>}</span></div>
       </div>
       <div className="divide-y divide-black/[0.07] p-5 sm:p-7">
         {specs.map(([key, Icon]) => (
@@ -100,8 +112,8 @@ function CompareCard({ bike, lang, labels, winnerBySpec }) {
 function ComparisonChart({ left, right, lang }) {
   const rows = [
     { key: "power", label: lang === "th" ? "แรงม้า" : "Power", unit: "hp" },
-    { key: "topSpeed", label: lang === "th" ? "ความเร็วสูงสุด" : "Top speed", unit: "km/h" },
-    { key: "price", label: lang === "th" ? "ราคา" : "Price", unit: "THB" },
+    { key: "torque", label: lang === "th" ? "แรงบิด" : "Torque", unit: "Nm" },
+    { key: "weight", label: lang === "th" ? "น้ำหนัก" : "Weight", unit: "kg" },
   ];
   const number = (value) => Number(String(value).replace(/[^0-9.]/g, ""));
 
@@ -154,7 +166,11 @@ export function ComparePage({ lang, onBack }) {
     const number = (value) => Number(String(value).replace(/[^0-9.]/g, ""));
     return {
       power: number(left.specs.power) >= number(right.specs.power) ? left.id : right.id,
-      topSpeed: number(left.specs.topSpeed) >= number(right.specs.topSpeed) ? left.id : right.id,
+      topSpeed: number(left.specs.topSpeed) > 0 && number(right.specs.topSpeed) > 0 ? (number(left.specs.topSpeed) >= number(right.specs.topSpeed) ? left.id : right.id) : null,
+      torque: number(left.specs.torque) >= number(right.specs.torque) ? left.id : right.id,
+      weight: number(left.specs.weight) <= number(right.specs.weight) ? left.id : right.id,
+      seatHeight: number(left.specs.seatHeight) <= number(right.specs.seatHeight) ? left.id : right.id,
+      fuelCapacity: number(left.specs.fuelCapacity) >= number(right.specs.fuelCapacity) ? left.id : right.id,
     };
   }, [left, right]);
   return <PageShell lang={lang} title={copy.compare} lead={copy.compareLead} onBack={onBack}>
@@ -162,7 +178,7 @@ export function ComparePage({ lang, onBack }) {
       <BikeSelect value={leftId} onChange={setLeftId} label={copy.first} />
       <BikeSelect value={rightId} onChange={setRightId} label={copy.second} />
     </div>
-    <div className="mt-6 grid gap-6 lg:grid-cols-2"><CompareCard bike={left} lang={lang} labels={copy.labels} winnerBySpec={winnerBySpec} /><CompareCard bike={right} lang={lang} labels={copy.labels} winnerBySpec={winnerBySpec} /></div>
+    <div className="mt-6 grid gap-6 lg:grid-cols-2"><CompareCard bike={left} lang={lang} labels={copy.labels} winnerBySpec={winnerBySpec} referenceLabel={copy.reference} priceReferenceLabel={copy.priceReference} /><CompareCard bike={right} lang={lang} labels={copy.labels} winnerBySpec={winnerBySpec} referenceLabel={copy.reference} priceReferenceLabel={copy.priceReference} /></div>
     <ComparisonChart left={left} right={right} lang={lang} />
   </PageShell>;
 }
