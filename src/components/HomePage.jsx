@@ -122,8 +122,7 @@ export default function HomePage({ lang, setLang, onEnter }) {
           transition={{ duration: 0.8, delay: 0.12, ease: "easeOut" }}
           className="relative min-h-[400px] lg:min-h-[620px]"
         >
-          <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] border border-black/[0.09] bg-[#111214] shadow-[0_35px_90px_rgba(0,0,0,0.22)]">
-            <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)] [background-size:58px_58px]" />
+          <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] border border-black/[0.09] bg-[#f7f7f5] shadow-[0_35px_90px_rgba(0,0,0,0.18)]">
             <AnimatePresence mode="wait">
               <motion.img
                 key={selectedBike.id}
@@ -133,12 +132,12 @@ export default function HomePage({ lang, setLang, onEnter }) {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.985 }}
                 transition={{ duration: 0.38, ease: "easeOut" }}
-                className="absolute inset-0 h-full w-full object-cover object-center"
+                className="absolute inset-0 h-full w-full object-contain object-center"
               />
             </AnimatePresence>
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/10" />
-            <div className="pointer-events-none absolute left-7 top-6 text-white">
-              <p className="text-[8px] font-bold uppercase tracking-[0.22em] text-white/45">{selectedBike.brand}</p>
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-white/10" />
+            <div className="pointer-events-none absolute left-7 top-6 text-black">
+              <p className="text-[8px] font-bold uppercase tracking-[0.22em] text-black/45">{selectedBike.brand}</p>
               <p className="mt-1 text-sm font-semibold tracking-wide">{selectedBike.name[lang]}</p>
             </div>
             <div className="absolute inset-x-6 bottom-6 rounded-2xl border border-white/10 bg-black/45 p-4 shadow-2xl backdrop-blur-xl">

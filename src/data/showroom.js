@@ -5,7 +5,7 @@ export const BIKES = [
   id: "ducati-panigale-v4",
   themeColor: "#C8102E",
   logo: `${BASE}logos/ducati.svg`,
-  homeImage: `${BASE}images/home-superbike-render.png`,
+  homeImage: `${BASE}images/home-ducati-lineup.jpg`,
   
   name: { en: "Panigale V4", th: "Panigale V4" },
   brand: "Ducati",
@@ -44,7 +44,7 @@ export const BIKES = [
   id: "bmw-s1000rr",
   themeColor: "#003D7D",
   logo: `${BASE}logos/bmw.svg`,
-  homeImage: `${BASE}images/wp4655431.jpg`,
+  homeImage: `${BASE}images/home-bmw-s1000rr.jpg`,
 
   model: `${BASE}models/bmw/bmw_s1000rr_fixed.glb`,
   modelScale: 1,
@@ -82,7 +82,7 @@ export const BIKES = [
   id: "kawasaki-ninja-h2",
   themeColor: "#78BE21",
   logo: `${BASE}logos/kawasaki-1.svg`,
-  homeImage: `${BASE}images/OIP.jpg`,
+  homeImage: `${BASE}images/home-kawasaki-h2.jpg`,
 
   model: `${BASE}models/kawasaki/scene.gltf`,
   audio: `${BASE}audio/kawasaki-ninja-h2.mp3`,
@@ -121,7 +121,7 @@ export const BIKES = [
   id: "honda-cbr1000rrr",
   themeColor: "#E4002B",
   logo: `${BASE}logos/honda-racing.png`,
-  homeImage: `${BASE}images/Screenshot 2026-09-18 170253.jpg`,
+  homeImage: `${BASE}images/home-honda-cbr1000rrr.jpg`,
 
   model: `${BASE}models/honda/scene.gltf`,
   modelScale: 1,
